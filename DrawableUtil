@@ -1,0 +1,125 @@
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+
+class DrawableUtil(val context: Context) {
+    companion object {
+        fun dip2px(context: Context, dpValue: Float): Int {// TODO 非此类专业功能，是否考虑在外部（ScreenUtil）定义该方法？，如果为了减少依赖至少设置private，外部不从此类中调用该方法
+            val scale = getScreenDensity(context)
+            return (dpValue * scale + 0.5f).toInt()
+        }
+
+        private fun getScreenDensity(context: Context): Float {
+            return context.resources.displayMetrics.density
+        }
+    }
+
+    private var strokeWidth = 0
+    private var strokeColor = 0xffffffff.toInt()
+
+    private var fillColors = intArrayOf(0xffffffff.toInt(), 0xffffffff.toInt())
+    private var orientation = GradientDrawable.Orientation.LEFT_RIGHT
+
+    private var useUnifiedCorner = true
+    private var unifiedRoundRadius = 0
+
+    private var specifiedTopLeftRoundRadius = 0
+    private var specifiedTopRightRoundRadius = 0
+    private var specifiedBottomLeftRoundRadius = 0
+    private var specifiedBottomRightRoundRadius = 0
+
+    fun generateDrawable(): Drawable {
+        val gd = GradientDrawable()
+        gd.orientation = this@DrawableUtil.orientation
+        gd.colors = this@DrawableUtil.fillColors
+        gd.setStroke(this@DrawableUtil.strokeWidth, this@DrawableUtil.strokeColor)
+        if (useUnifiedCorner) {
+            gd.cornerRadius = unifiedRoundRadius.toFloat()
+        } else {
+            gd.cornerRadii = floatArrayOf(
+                specifiedTopLeftRoundRadius.toFloat(),
+                specifiedTopLeftRoundRadius.toFloat(),
+
+                specifiedTopRightRoundRadius.toFloat(),
+                specifiedTopRightRoundRadius.toFloat(),
+
+                specifiedBottomRightRoundRadius.toFloat(),
+                specifiedBottomRightRoundRadius.toFloat(),
+
+                specifiedBottomLeftRoundRadius.toFloat(),
+                specifiedBottomLeftRoundRadius.toFloat(),
+            )
+        }
+        return gd
+    }
+
+    fun setStrokeWidth(strokeWidth: Int): DrawableUtil {
+        this.strokeWidth = strokeWidth
+        return this
+    }
+
+    fun setStrokeColor(strokeColor: Int): DrawableUtil {
+        this.strokeColor = strokeColor
+        return this
+    }
+
+    fun setStrokeColor(strokeColor: Long): DrawableUtil {
+        this.strokeColor = strokeColor.toInt()
+        return this
+    }
+
+    fun setFillColors(fillColors: IntArray): DrawableUtil {
+        this.fillColors = fillColors
+        return this
+    }
+
+    fun setFillColors(fillColors: LongArray): DrawableUtil {
+        this.fillColors = fillColors
+            .map { it.toInt() }
+            .toIntArray()
+        return this
+    }
+
+    fun setFillColor(fillColor: Int): DrawableUtil {
+        this.fillColors = intArrayOf(fillColor, fillColor)
+        return this
+    }
+
+    fun setFillColor(fillColor: Long): DrawableUtil {
+        this.fillColors = intArrayOf(fillColor.toInt(), fillColor.toInt())
+        return this
+    }
+
+    fun setOrientation(orientation: GradientDrawable.Orientation): DrawableUtil {
+        this.orientation = orientation
+        return this
+    }
+
+    fun setRoundRadiusSpecified(topLeft: Int = 0, topRight: Int = 0, bottomLeft: Int = 0, bottomRight: Int = 0, useDip: Boolean = false): DrawableUtil {
+        if (useDip) {
+            this.specifiedTopLeftRoundRadius = dip2px(context, topLeft.toFloat())
+            this.specifiedTopRightRoundRadius = dip2px(context, topRight.toFloat())
+            this.specifiedBottomLeftRoundRadius = dip2px(context, bottomLeft.toFloat())
+            this.specifiedBottomRightRoundRadius = dip2px(context, bottomRight.toFloat())
+        } else {
+            this.specifiedTopLeftRoundRadius = topLeft
+            this.specifiedTopRightRoundRadius = topRight
+            this.specifiedBottomLeftRoundRadius = bottomLeft
+            this.specifiedBottomRightRoundRadius = bottomRight
+        }
+        useUnifiedCorner = false
+        return this
+    }
+
+    fun setRoundRadiusUnified(roundRadius: Int, useDip: Boolean = false): DrawableUtil {
+        if (useDip) {
+            this.unifiedRoundRadius = dip2px(context, roundRadius.toFloat())
+        } else {
+            this.unifiedRoundRadius = roundRadius
+        }
+
+        useUnifiedCorner = true
+        return this
+    }
+
+}
